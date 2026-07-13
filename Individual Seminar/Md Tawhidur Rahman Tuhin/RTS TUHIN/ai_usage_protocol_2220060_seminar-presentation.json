@@ -1,0 +1,166 @@
+{
+  "protocol_version": "0.2",
+  "student_id": "2220060",
+  "course": "Real-Time Systems Seminar",
+  "milestone": "seminar-presentation",
+  "topic": "The Earliest Deadline Late (EDL) Server",
+  "exported_at": "2026-07-13T14:51:26+02:00",
+  "entries": [
+    {
+      "id": "e-001",
+      "timestamp": "2026-06-27T15:00:00+02:00",
+      "parent_id": null,
+      "objective": "Understand the EDS/EDL distinction and why the position of idle time matters, before structuring the presentation.",
+      "ai_tool": {
+        "name": "Claude",
+        "model": "Claude (Cowork mode)"
+      },
+      "prompt": "In the EDL server from Buttazzo Section 6.5, what is the difference between EDS and EDL, and why does it matter where the idle time is placed? Explain it simply. (Representative wording; the original session's exact prompt was not recorded.)",
+      "ai_output_summary": "Both schedules meet the same deadlines and leave the same total idle time, but EDS collects it late while EDL exposes it early. Since a request can only be served from its arrival onward, only early idle time shortens the response - hence the server builds on EDL and on the Chetto & Chetto maximum-idle-time theorem.",
+      "verification": {
+        "actions": [
+          "Compared the EDS/EDL description and the theorem statement against Section 6.5 (Theorem 6.4).",
+          "Confirmed both schedules leave 6 idle units per hyperperiod for the example set, placed oppositely."
+        ],
+        "level": "primary-source-check"
+      },
+      "evaluation": {
+        "status": "accepted",
+        "issues": [],
+        "usefulness": "high"
+      },
+      "integration": {
+        "used_in_work": true,
+        "section": "Core-idea slide (4): EDF vs. EDL",
+        "usage_type": "terminology-clarification",
+        "direct_text_reused": false
+      },
+      "reflection": "Seeing it as 'same idle time, opposite position' reduced the server to one sentence - schedule the chores late, serve the requests early - which became my closing line."
+    },
+    {
+      "id": "e-002",
+      "timestamp": "2026-06-27T16:00:00+02:00",
+      "parent_id": "e-001",
+      "objective": "Understand the slack rule S(t) >= 1 and the idle-time arrays E and Delta well enough to present and defend the idle-map slide.",
+      "ai_tool": {
+        "name": "Claude",
+        "model": "Claude (Cowork mode)"
+      },
+      "prompt": "How does the EDL server decide when an aperiodic request may run? Explain the slack S(t) = min over d of [(d - t) - g(t, d)] and the idle-time arrays E and Delta in simple terms. (Representative wording.)",
+      "ai_output_summary": "With no request the tasks run under EDF; on an arrival the server computes the EDL idle times of the current instances. A unit is usable when the slack is at least one; each term is a future deadline minus the periodic work due by it. The repeating idle pattern is stored as starts E and lengths Delta, and the server automatically gets Us = 1 - Up.",
+      "verification": {
+        "actions": [
+          "Checked the slack formulation and the arrays against Section 6.5 (availability function, Table 6.1).",
+          "Confirmed E = (0,8,12,18) and Delta = (3,1,1,1), totalling 6 = H(1 - Up) units."
+        ],
+        "level": "primary-source-check"
+      },
+      "evaluation": {
+        "status": "accepted",
+        "issues": [],
+        "usefulness": "high"
+      },
+      "integration": {
+        "used_in_work": true,
+        "section": "Idle-time map slide (5)",
+        "usage_type": "terminology-clarification",
+        "direct_text_reused": false
+      },
+      "reflection": "Reading each slack term as 'a deadline minus the work due by it' lets me recompute the example live instead of reading numbers off the slide."
+    },
+    {
+      "id": "e-003",
+      "timestamp": "2026-07-13T02:00:00+02:00",
+      "parent_id": "e-002",
+      "objective": "Have the worked example re-derived independently instead of copied, so the numbers on the slide are certain and defensible.",
+      "ai_tool": {
+        "name": "Claude",
+        "model": "Claude Fable 5 (Cowork mode)"
+      },
+      "prompt": "Verify the worked example against the reference book instead of copying it: tau1=(3,6), tau2=(2,8), a 4-unit request arriving at t=8. Re-derive the slack S(8), the service pattern, and the finishing time step by step.",
+      "ai_output_summary": "Re-derived S(8) = min{3,5,4,5} = 3, service at t = 8, 9, 10, tau1 forced at t = 11 (deadline 12), last unit at t = 12, finish 13, response R = 5; traced that every periodic instance still meets its deadline (tau2's second instance completes at 15).",
+      "verification": {
+        "actions": [
+          "Compared every value with the book's example (Figures 6.7-6.8, Table 6.1); all matched.",
+          "Followed the slack derivation term by term myself."
+        ],
+        "level": "primary-source-check"
+      },
+      "evaluation": {
+        "status": "accepted",
+        "issues": [],
+        "usefulness": "high"
+      },
+      "integration": {
+        "used_in_work": true,
+        "section": "Worked-example slide (6)",
+        "usage_type": "verification-support",
+        "direct_text_reused": false
+      },
+      "reflection": "Re-deriving instead of trusting is the difference between presenting numbers and understanding them. This is the slide I am most confident defending."
+    },
+    {
+      "id": "e-004",
+      "timestamp": "2026-07-13T02:30:00+02:00",
+      "parent_id": "e-003",
+      "objective": "Pin down the exact scope of the guarantees (schedulability, optimality) and the cost/IPE trade-off so the slides do not overstate the claims.",
+      "ai_tool": {
+        "name": "Claude",
+        "model": "Claude Fable 5 (Cowork mode)"
+      },
+      "prompt": "For my guarantees and cost slides: state exactly what the EDL server guarantees. Is it optimal in general? And what does the IPE server change? (Representative wording.)",
+      "ai_output_summary": "Schedulability is exactly the EDF test (Up <= 1, if and only if; Theorem 6.5). Optimality (Lemma 6.3) holds against on-line algorithms only. The exact server costs O(N n) per arrival; the IPE server precomputes the idle map off-line and is near-optimal, not optimal.",
+      "verification": {
+        "actions": [
+          "Checked Theorem 6.5 ('if and only if') and Lemma 6.3 ('any on-line preemptive algorithm') in the book.",
+          "Confirmed the O(N n) complexity and that IPE is described as nearly optimal."
+        ],
+        "level": "primary-source-check"
+      },
+      "evaluation": {
+        "status": "accepted",
+        "issues": [],
+        "usefulness": "high"
+      },
+      "integration": {
+        "used_in_work": true,
+        "section": "Guarantees slide (7) and cost slide (8)",
+        "usage_type": "argument-critique",
+        "direct_text_reused": false
+      },
+      "reflection": "The gap between 'optimal', 'optimal among on-line algorithms', and 'near-optimal' is exactly what a professor probes; pinning it beforehand makes the slides defensible."
+    },
+    {
+      "id": "e-005",
+      "timestamp": "2026-06-29T11:00:00+02:00",
+      "parent_id": "e-002",
+      "objective": "Generate the PPTX file after the structure and content were fixed; hand-formatting a clean deck takes hours.",
+      "ai_tool": {
+        "name": "Claude",
+        "model": "Claude (Cowork mode)"
+      },
+      "prompt": "Create a minimal, clean PPTX on the EDL server (Buttazzo Sec. 6.5), about 10 slides: title, motivation, EDF background, EDF-vs-EDL core idea, idle-time map, worked example (request at t=8), guarantees, cost and IPE, strengths/limitations/applications, one-picture summary. Plain white background, black-and-white figures, no decorative icons. (Representative - actual prompts were iterative.)",
+      "ai_output_summary": "Claude generated the deck in a minimal style: white background, grey section labels, black-and-white schedule figures, short bullet lines. Content of every slide follows the source and the structure fixed beforehand.",
+      "verification": {
+        "actions": [
+          "Opened the generated PPTX and reviewed every slide against the intended structure.",
+          "Checked the worked-example numbers, the idle map, and the guarantee statements against Section 6.5 (see interactions e-003 and e-004).",
+          "The AI cannot verify technical correctness on its own; that check was my responsibility."
+        ],
+        "level": "empirical-check"
+      },
+      "evaluation": {
+        "status": "accepted",
+        "issues": [],
+        "usefulness": "high"
+      },
+      "integration": {
+        "used_in_work": true,
+        "section": "Entire presentation file",
+        "usage_type": "other",
+        "direct_text_reused": false
+      },
+      "reflection": "As with my earlier GEM deck, the AI acted as a formatting tool: it saved layout time, while the content decisions and correctness checks stayed with me."
+    }
+  ]
+}
