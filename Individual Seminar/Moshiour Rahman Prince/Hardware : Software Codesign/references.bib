@@ -1,0 +1,127 @@
+
+@book{gajski1992,
+  author    = {Gajski, D. D. and Dutt, N. D. and Wu, A. C.-H. and Lin, S. Y.-L.},
+  title     = {High-Level Synthesis: Introduction to Chip and System Design},
+  publisher = {Kluwer Academic Publishers},
+  address   = {Boston, MA},
+  year      = {1992},
+  annote    = {Foundational HLS textbook; supplies the DAG task-graph model (G=(V,E)) and the scheduling/allocation/binding decomposition that this paper's whole formulation of the traffic-controller scheduling problem is built on (Sec. III, Fig. 1).}
+}
+
+@article{coussy2009,
+  author  = {Coussy, P. and Gajski, D. D. and Meredith, M. and Takach, A.},
+  title   = {An Introduction to High-Level Synthesis},
+  journal = {IEEE Design \& Test of Computers},
+  volume  = {26},
+  number  = {4},
+  pages   = {8--17},
+  year    = {2009},
+  doi     = {10.1109/MDT.2009.69},
+  annote  = {Modern survey of the HLS design flow; used in the Introduction to motivate why scheduling is the pivotal, hardest-to-automate step that this paper targets with a genetic algorithm instead of a commercial HLS tool.}
+}
+
+@article{mcfarland1990,
+  author  = {McFarland, M. C. and Parker, A. C. and Camposano, R.},
+  title   = {The High-Level Synthesis of Digital Systems},
+  journal = {Proceedings of the IEEE},
+  volume  = {78},
+  number  = {2},
+  pages   = {301--318},
+  year    = {1990},
+  doi     = {10.1109/5.52214},
+  annote  = {Establishes the classical scheduling/allocation/binding task split adopted verbatim as the paper's HLS workflow (Sec. I-A, Fig. 1) and referenced again for the ``schedule assigns a start time to every task'' formulation in Sec. III-C.}
+}
+
+@article{camposano1990,
+  author  = {Camposano, R.},
+  title   = {From Behavior to Structure: High-Level Synthesis},
+  journal = {IEEE Design \& Test of Computers},
+  volume  = {7},
+  number  = {5},
+  pages   = {8--19},
+  year    = {1990},
+  doi     = {10.1109/54.60603},
+  annote  = {Classic behavioral-to-structural HLS reference; underlies the paper's decision to carry the flow all the way to a synthesizable VHDL RTL netlist (Sec. V) rather than stop at a scheduled software model.}
+}
+
+@article{arato2005,
+  author  = {Arat{\'o}, P. and Mann, Z. {\'A}. and Orb{\'a}n, A.},
+  title   = {Algorithmic Aspects of Hardware/Software Partitioning},
+  journal = {ACM Transactions on Design Automation of Electronic Systems},
+  volume  = {10},
+  number  = {1},
+  pages   = {136--156},
+  year    = {2005},
+  doi     = {10.1145/1044111.1044119},
+  annote  = {Connects scheduling decisions to the broader hardware/software co-design problem; cited in the Introduction to frame the seminar's HW/SW Codesign context and again in the Conclusion as the basis for the proposed future-work direction (mapping timing-critical tasks to hardware while the GA search stays in software).}
+}
+
+@article{hwang1991,
+  author  = {Hwang, C.-T. and Lee, J.-H. and Hsu, Y.-C.},
+  title   = {A Formal Approach to the Scheduling Problem in High-Level Synthesis},
+  journal = {IEEE Transactions on Computer-Aided Design},
+  volume  = {10},
+  number  = {4},
+  pages   = {464--475},
+  year    = {1991},
+  doi     = {10.1109/43.75629},
+  annote  = {Supplies the formal ILP scheduling model and the NP-hardness proof for resource-constrained scheduling that directly justifies replacing exact/greedy methods with a genetic-algorithm heuristic in this paper (Sec. I-B, III-C, and the precedence constraint of Eq. 3).}
+}
+
+@article{paulin1989,
+  author  = {Paulin, P. G. and Knight, J. P.},
+  title   = {Force-Directed Scheduling for the Behavioral Synthesis of ASICs},
+  journal = {IEEE Transactions on Computer-Aided Design},
+  volume  = {8},
+  number  = {6},
+  pages   = {661--679},
+  year    = {1989},
+  doi     = {10.1109/43.31522},
+  annote  = {Serves as the deterministic, single-trajectory constructive-heuristic baseline against which the GA's population-based search is contrasted (Sec. I-C and Related Work); also the source of the ASAP/ALAP mobility-window concept used to bound the chromosome genes (Sec. III-B, IV-C).}
+}
+
+@book{holland1975,
+  author    = {Holland, J. H.},
+  title     = {Adaptation in Natural and Artificial Systems},
+  publisher = {University of Michigan Press},
+  address   = {Ann Arbor, MI},
+  year      = {1975},
+  annote    = {Foundational reference for genetic algorithms; grounds the selection/crossover/mutation search engine (Sec. III-D) that the paper applies to traffic-controller scheduling.}
+}
+
+@book{goldberg1989,
+  author    = {Goldberg, D. E.},
+  title     = {Genetic Algorithms in Search, Optimization, and Machine Learning},
+  publisher = {Addison-Wesley},
+  address   = {Reading, MA},
+  year      = {1989},
+  annote    = {Standard GA reference used specifically for the penalty-based fitness construction (Eqs. 7-8, Sec. III-E) that turns the constrained scheduling problem into an unconstrained fitness-maximization problem.}
+}
+
+@inproceedings{arato2002,
+  author    = {Arat{\'o}, P. and Mann, Z. {\'A}. and Orb{\'a}n, A.},
+  title     = {Genetic Scheduling Algorithm for High-Level Synthesis},
+  booktitle = {Proc. IEEE 6th Int. Conf. Intelligent Engineering Systems (INES)},
+  address   = {Opatija, Croatia},
+  year      = {2002},
+  annote    = {Primary methodological source for this seminar paper: its start-time chromosome encoding and penalty-based constraint handling (Sec. III-A/E) are adopted directly and extended here to the multi-lane, resource-shared traffic-controller instance (Sec. IV-A), which is the paper's stated contribution delta (Related Work).}
+}
+
+@inproceedings{heijligers1995,
+  author    = {Heijligers, M. J. M. and Cluitmans, L. J. M. and Jess, J. A. G.},
+  title     = {High-Level Synthesis Scheduling and Allocation Using Genetic Algorithms},
+  booktitle = {Proc. Asia and South Pacific Design Automation Conf. (ASP-DAC)},
+  pages     = {61--66},
+  year      = {1995},
+  doi       = {10.1145/224818.224842},
+  annote    = {Earlier GA-based joint scheduling-and-allocation work, used in Related Work to position this paper's narrower schedule-only, resource-sharing-focused contribution against prior GA-HLS literature.}
+}
+
+@book{davis1991,
+  author    = {Davis, L.},
+  title     = {Handbook of Genetic Algorithms},
+  publisher = {Van Nostrand Reinhold},
+  address   = {New York, NY},
+  year      = {1991},
+  annote    = {Practical guidance on GA operator design and parameter tuning; referenced when discussing the scheduler's stochastic behavior and the need to tune population size, mutation rate and crossover rate (Sec. III-D, VI-D).}
+}
