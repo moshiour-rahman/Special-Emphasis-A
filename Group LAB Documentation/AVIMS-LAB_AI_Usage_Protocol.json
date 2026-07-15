@@ -1,0 +1,469 @@
+{
+  "protocol_version": "0.2",
+  "student_id": "1230115",
+  "course": "Electronic Engineering",
+  "milestone": "Final Project",
+  "topic": "AVIMS — Autonomous Vehicle Intersection Management System",
+  "team_members": [
+    {
+      "name": "Moshiour Rahman Prince",
+      "student_id": "2200514"
+    },
+    {
+      "name": "Md Ratul Ahmed Alvi",
+      "student_id": "1230115"
+    },
+    {
+      "name": "Md. Tawhidur Rahman Tuhin",
+      "student_id": "2220060"
+    }
+  ],
+  "entries": [
+    {
+      "id": "avims-001",
+      "timestamp": "2026-07-05T12:00:00+02:00",
+      "parent_id": null,
+      "objective": "Improve and cross-check the project requirements diagram so that it matches the final AVIMS system scope.",
+      "ai_tool": {
+        "name": "ChatGPT",
+        "model": "GPT-5"
+      },
+      "prompt": "Review our AVIMS requirements diagram for a four-way autonomous vehicle intersection. Cross-check the functional requirements, timing requirement, safety requirement, primary-backup coordination, and one-channel/two-channel scheduling modes. Help us remove unnecessary requirements and keep the diagram consistent with the actual project.",
+      "ai_output_summary": "Reviewed the requirements structure and suggested a clearer hierarchy covering vehicle requests, FIFS ordering, conflict detection, scheduling, authorization, timing, and primary-backup synchronization.",
+      "verification": {
+        "actions": [
+          "Compared every suggested requirement with the actual project implementation.",
+          "Removed suggestions that were outside the implemented project scope.",
+          "Cross-checked the final requirements against the UPPAAL, FreeRTOS, and VHDL parts of the project."
+        ],
+        "level": "implementation-cross-check"
+      },
+      "evaluation": {
+        "status": "revised",
+        "issues": [
+          "Some early suggestions were too broad and included functions that were not implemented.",
+          "The final requirements had to be limited to the actual AVIMS project scope."
+        ],
+        "usefulness": "high"
+      },
+      "integration": {
+        "used_in_work": true,
+        "section": "Requirements Engineering",
+        "usage_type": "requirements-review",
+        "direct_text_reused": false
+      },
+      "reflection": "The AI was useful for checking whether the requirements were complete, but we kept only requirements that matched our real project. This helped us avoid documenting features that we had not actually implemented."
+    },
+    {
+      "id": "avims-002",
+      "timestamp": "2026-07-05T13:00:00+02:00",
+      "parent_id": "avims-001",
+      "objective": "Update the use-case, activity, sequence, and state-machine diagrams so that all diagrams describe the same final system.",
+      "ai_tool": {
+        "name": "ChatGPT",
+        "model": "GPT-5"
+      },
+      "prompt": "Cross-check our use-case, activity, sequence, and state-machine diagrams against the updated AVIMS requirements. Make sure the actors, request flow, conflict checking, FIFS scheduling, backup synchronization, grant, crossing, and exit behaviour are consistent.",
+      "ai_output_summary": "Identified inconsistencies between earlier diagram versions and suggested a common system flow from vehicle request to conflict checking, scheduling, backup acknowledgement, grant, crossing, and release.",
+      "verification": {
+        "actions": [
+          "Compared the diagrams with each other.",
+          "Checked that the sequence matched the implemented primary-backup handshake.",
+          "Checked that the vehicle and server states could be related to the UPPAAL templates."
+        ],
+        "level": "cross-model-validation"
+      },
+      "evaluation": {
+        "status": "revised",
+        "issues": [
+          "Some initial diagram connections were too complicated and had overlapping lines.",
+          "Some older diagrams contained behaviour that no longer matched the final implementation."
+        ],
+        "usefulness": "high"
+      },
+      "integration": {
+        "used_in_work": true,
+        "section": "System Modelling",
+        "usage_type": "diagram-review-and-revision",
+        "direct_text_reused": false
+      },
+      "reflection": "The main benefit was consistency. We did not want one diagram to describe a different system from another. We simplified the models and checked them against the final implementation."
+    },
+    {
+      "id": "avims-003",
+      "timestamp": "2026-07-06T08:00:00+02:00",
+      "parent_id": null,
+      "objective": "Understand and validate the 12 by 12 movement conflict matrix used by the AVIMS scheduler.",
+      "ai_tool": {
+        "name": "ChatGPT",
+        "model": "GPT-5"
+      },
+      "prompt": "Explain how a 12x12 conflict matrix works for a four-way autonomous intersection with left, straight, and right movements from North, East, South, and West. Explain what 0 and 1 mean and how to determine whether two vehicle trajectories intersect.",
+      "ai_output_summary": "Explained that twelve possible movements produce 144 pairwise combinations and that the matrix stores whether each movement pair conflicts. It also explained the diagonal, symmetry, and how trajectory intersection can be used to generate the matrix.",
+      "verification": {
+        "actions": [
+          "Manually checked known compatible and conflicting movement pairs.",
+          "Compared the same matrix across the C header, UPPAAL model, VHDL ROM, and visualization.",
+          "Used the VHDL testbench to test all 144 movement combinations."
+        ],
+        "level": "cross-layer-and-empirical-check"
+      },
+      "evaluation": {
+        "status": "accepted-after-verification",
+        "issues": [
+          "The movement ordering had to remain exactly consistent across all project files."
+        ],
+        "usefulness": "high"
+      },
+      "integration": {
+        "used_in_work": true,
+        "section": "Conflict Matrix and HW/SW Co-Design",
+        "usage_type": "concept-explanation-and-validation",
+        "direct_text_reused": false
+      },
+      "reflection": "At first the 12x12 matrix looked more complicated than it really was. After checking specific movement pairs, we understood that it is simply a lookup table for whether two trajectories can safely be active together."
+    },
+    {
+      "id": "avims-004",
+      "timestamp": "2026-07-06T09:00:00+02:00",
+      "parent_id": "avims-003",
+      "objective": "Understand how Python can be used to generate the conflict matrix from vehicle trajectories.",
+      "ai_tool": {
+        "name": "ChatGPT",
+        "model": "GPT-5"
+      },
+      "prompt": "How can Python determine whether two autonomous vehicle movements intersect and use this to generate a 12x12 conflict matrix?",
+      "ai_output_summary": "Explained how movements can be represented as geometric paths and how pairwise trajectory-intersection tests can be used to fill the conflict matrix automatically.",
+      "verification": {
+        "actions": [
+          "Compared generated results with manually known examples.",
+          "Checked that compatible movements such as opposite straight movements were handled correctly where intended.",
+          "Compared the resulting matrix with the C and VHDL representations."
+        ],
+        "level": "empirical-cross-check"
+      },
+      "evaluation": {
+        "status": "partially-accepted",
+        "issues": [
+          "Pure geometric intersection is not always enough because the intended intersection policy also matters.",
+          "The final matrix was treated as a project design decision and manually validated."
+        ],
+        "usefulness": "medium"
+      },
+      "integration": {
+        "used_in_work": true,
+        "section": "Conflict Matrix",
+        "usage_type": "algorithm-understanding",
+        "direct_text_reused": false
+      },
+      "reflection": "The AI helped explain how geometry can generate the first version of a matrix, but we learned that the final safety policy still needs manual checking. Two paths touching geometrically does not automatically tell the complete scheduling policy."
+    },
+    {
+      "id": "avims-005",
+      "timestamp": "2026-07-06T10:00:00+02:00",
+      "parent_id": null,
+      "objective": "Understand the role of UPPAAL in the AVIMS HW/SW co-design workflow.",
+      "ai_tool": {
+        "name": "ChatGPT",
+        "model": "GPT-5"
+      },
+      "prompt": "Where does UPPAAL fit in our autonomous intersection HW/SW co-design project? Explain it simply and relate it to our FreeRTOS and VHDL implementation.",
+      "ai_output_summary": "Explained that UPPAAL is used before or alongside implementation to formally model and verify timed system behaviour, while FreeRTOS implements runtime task coordination and VHDL implements the selected hardware function.",
+      "verification": {
+        "actions": [
+          "Compared the explanation with the actual UPPAAL templates and implementation architecture.",
+          "Mapped vehicle states and primary-backup behaviour to the software design."
+        ],
+        "level": "model-to-implementation-check"
+      },
+      "evaluation": {
+        "status": "accepted",
+        "issues": [],
+        "usefulness": "high"
+      },
+      "integration": {
+        "used_in_work": true,
+        "section": "UPPAAL Formal Model and Presentation Preparation",
+        "usage_type": "conceptual-understanding",
+        "direct_text_reused": false
+      },
+      "reflection": "This helped us clearly separate verification from implementation. UPPAAL does not replace FreeRTOS or VHDL; it checks the behaviour of the model before we rely on the implementation."
+    },
+    {
+      "id": "avims-006",
+      "timestamp": "2026-07-06T11:00:00+02:00",
+      "parent_id": "avims-005",
+      "objective": "Cross-check the UPPAAL model and understand the meaning of the verification properties.",
+      "ai_tool": {
+        "name": "ChatGPT",
+        "model": "GPT-5"
+      },
+      "prompt": "Explain our AVIMS UPPAAL model and the verification properties for deadlock freedom, no conflicting vehicles, no vehicle inside without permission, decision time within 50 ms, backup synchronization before grant, channel occupancy, and reachable two-vehicle concurrency.",
+      "ai_output_summary": "Explained the purpose of each property and distinguished universal safety properties from the reachability witness showing that safe two-vehicle concurrency can actually occur.",
+      "verification": {
+        "actions": [
+          "Ran the stored verification queries in UPPAAL.",
+          "Checked the verifier results shown in the project presentation.",
+          "Compared the properties with the intended system requirements."
+        ],
+        "level": "tool-based-empirical-check"
+      },
+      "evaluation": {
+        "status": "accepted-after-verification",
+        "issues": [
+          "The difference between a universal guarantee and a reachability witness needed careful wording."
+        ],
+        "usefulness": "high"
+      },
+      "integration": {
+        "used_in_work": true,
+        "section": "Formal Verification",
+        "usage_type": "verification-support",
+        "direct_text_reused": false
+      },
+      "reflection": "The most useful point was understanding that proving two compatible vehicles can cross together is different from proving that unsafe states never happen. This made the verification section much clearer."
+    },
+    {
+      "id": "avims-007",
+      "timestamp": "2026-07-06T12:00:00+02:00",
+      "parent_id": null,
+      "objective": "Understand the difference between the one-channel and two-channel scheduling configurations and avoid making incorrect queueing claims.",
+      "ai_tool": {
+        "name": "ChatGPT",
+        "model": "GPT-5"
+      },
+      "prompt": "Explain why our project calls the two modes M/M/1 and M/M/2, what changes when we allow two compatible vehicles, and whether we can claim doubled throughput.",
+      "ai_output_summary": "Explained the one-server and two-server interpretation but warned that a mathematically complete M/M/c model assumes Markovian arrivals and service times. It also advised against claiming doubled throughput without measured experimental evidence.",
+      "verification": {
+        "actions": [
+          "Compared the explanation with standard queueing-theory definitions.",
+          "Checked the actual implemented scheduling behaviour.",
+          "Changed the report wording to one-channel and two-channel conflict-aware service where more precision was needed."
+        ],
+        "level": "literature-and-implementation-check"
+      },
+      "evaluation": {
+        "status": "revised",
+        "issues": [
+          "Earlier wording could have overstated the implementation as a complete stochastic M/M/c experiment.",
+          "Throughput improvement should be measured rather than assumed."
+        ],
+        "usefulness": "high"
+      },
+      "integration": {
+        "used_in_work": true,
+        "section": "Queueing Strategy and Results",
+        "usage_type": "terminology-clarification",
+        "direct_text_reused": false
+      },
+      "reflection": "This was an important correction. We kept the laboratory terminology but made the report more precise and avoided claiming experimental results that we had not measured."
+    },
+    {
+      "id": "avims-008",
+      "timestamp": "2026-07-06T13:00:00+02:00",
+      "parent_id": null,
+      "objective": "Understand how the FreeRTOS part of the project works and how the scheduler, queues, notifications, and backup task fit together.",
+      "ai_tool": {
+        "name": "ChatGPT",
+        "model": "GPT-5"
+      },
+      "prompt": "Explain our FreeRTOS implementation like I am a student learning it for the first time. What do the SchedulerTask, BackupTask, CommandTask, worker tasks, queues, task notifications, mutex, and vTaskDelay do?",
+      "ai_output_summary": "Explained each FreeRTOS component in simple terms and connected the software mechanisms to the project behaviour and UPPAAL model.",
+      "verification": {
+        "actions": [
+          "Compared the explanation with the actual FreeRTOS source code.",
+          "Checked the queue and notification flow in the running program.",
+          "Used runtime output and the live demonstration to observe behaviour."
+        ],
+        "level": "source-code-and-runtime-check"
+      },
+      "evaluation": {
+        "status": "accepted-after-verification",
+        "issues": [],
+        "usefulness": "high"
+      },
+      "integration": {
+        "used_in_work": true,
+        "section": "Portable C Core and FreeRTOS Architecture",
+        "usage_type": "code-understanding",
+        "direct_text_reused": false
+      },
+      "reflection": "The simple explanation helped us prepare for questions about why FreeRTOS was used and how tasks communicate. We still checked every explanation against our own code."
+    },
+    {
+      "id": "avims-009",
+      "timestamp": "2026-07-06T14:00:00+02:00",
+      "parent_id": "avims-008",
+      "objective": "Understand and explain why the conflict lookup was moved to VHDL hardware while scheduling remained in software.",
+      "ai_tool": {
+        "name": "ChatGPT",
+        "model": "GPT-5"
+      },
+      "prompt": "Explain our HW/SW co-design decision. Why keep the scheduler in C/FreeRTOS but move the 12x12 conflict lookup into VHDL hardware?",
+      "ai_output_summary": "Explained that queue management and scheduling policy are dynamic and easier to change in software, while the pairwise conflict lookup is deterministic, compact, repeated frequently, and suitable for hardware implementation.",
+      "verification": {
+        "actions": [
+          "Compared the explanation with the actual project partition.",
+          "Checked that the VHDL ROM implements only the pairwise conflict lookup.",
+          "Confirmed that the FreeRTOS scheduler still owns queue and grant decisions."
+        ],
+        "level": "architecture-cross-check"
+      },
+      "evaluation": {
+        "status": "accepted",
+        "issues": [],
+        "usefulness": "high"
+      },
+      "integration": {
+        "used_in_work": true,
+        "section": "HW/SW Co-Design",
+        "usage_type": "architecture-explanation",
+        "direct_text_reused": false
+      },
+      "reflection": "This helped us explain that HW/SW co-design does not mean moving everything into hardware. We selected one small repeated operation that fits hardware well and kept the flexible control logic in software."
+    },
+    {
+      "id": "avims-010",
+      "timestamp": "2026-07-06T15:00:00+02:00",
+      "parent_id": "avims-009",
+      "objective": "Understand how to verify the VHDL conflict ROM and explain the ModelSim waveform correctly.",
+      "ai_tool": {
+        "name": "ChatGPT",
+        "model": "GPT-5"
+      },
+      "prompt": "Explain how our VHDL conflict ROM testbench works, how all 144 movement pairs are tested, and how I can look at a ModelSim waveform and know whether the simulation is correct.",
+      "ai_output_summary": "Explained the full 12x12 sweep, expected-versus-observed checks, symmetry and known-pair checks, and how input movement identifiers and conflict outputs should be read in the simulator waveform.",
+      "verification": {
+        "actions": [
+          "Ran or reviewed the self-checking VHDL testbench.",
+          "Checked the actual ModelSim/QuestaSim waveform images.",
+          "Compared known compatible and conflicting pairs against the matrix."
+        ],
+        "level": "simulation-and-testbench-check"
+      },
+      "evaluation": {
+        "status": "accepted-after-verification",
+        "issues": [
+          "The waveform alone is not enough unless the expected movement pairs and testbench assertions are also understood."
+        ],
+        "usefulness": "high"
+      },
+      "integration": {
+        "used_in_work": true,
+        "section": "VHDL Testbench and ModelSim/QuestaSim Evidence",
+        "usage_type": "verification-understanding",
+        "direct_text_reused": false
+      },
+      "reflection": "Before this, a waveform looked like just signal lines. After checking specific inputs and expected conflict outputs, we could explain what the simulation actually proves."
+    },
+    {
+      "id": "avims-011",
+      "timestamp": "2026-07-06T16:00:00+02:00",
+      "parent_id": null,
+      "objective": "Prepare for the oral presentation and possible professor questions without memorizing answers blindly.",
+      "ai_tool": {
+        "name": "ChatGPT",
+        "model": "GPT-5"
+      },
+      "prompt": "Act like our professor and ask probable technical questions about the AVIMS project, including the conflict matrix, 144 combinations, FreeRTOS, UPPAAL, HW/SW co-design, VHDL ROM, timing, and project complexity. Then explain the answers in simple student language.",
+      "ai_output_summary": "Generated likely technical questions and simple explanations covering the complete project workflow.",
+      "verification": {
+        "actions": [
+          "Compared answers with the actual source code, diagrams, UPPAAL model, and presentation.",
+          "Removed or corrected answers that did not exactly match the implementation.",
+          "Used the questions for presentation practice."
+        ],
+        "level": "project-evidence-check"
+      },
+      "evaluation": {
+        "status": "partially-accepted",
+        "issues": [
+          "Some possible questions were broader than the implemented project.",
+          "Answers had to be shortened to sound natural during an oral presentation."
+        ],
+        "usefulness": "high"
+      },
+      "integration": {
+        "used_in_work": false,
+        "section": "Oral Presentation Preparation",
+        "usage_type": "question-and-answer-practice",
+        "direct_text_reused": false
+      },
+      "reflection": "The main benefit was finding weak points in our own understanding before the presentation. We did not memorize the generated answers; we checked them against the project and then explained them in our own words."
+    },
+    {
+      "id": "avims-012",
+      "timestamp": "2026-07-15T13:00:00+02:00",
+      "parent_id": null,
+      "objective": "Create a first IEEE-style laboratory documentation draft from the actual AVIMS project files and presentation.",
+      "ai_tool": {
+        "name": "ChatGPT",
+        "model": "GPT-5"
+      },
+      "prompt": "Read our project and create a laboratory documentation file in LaTeX IEEE format. Treat it as lab documentation rather than a seminar paper. Include requirements, diagrams, UPPAAL, FreeRTOS, HW/SW co-design, VHDL, ModelSim, testing, results, references, and team contributions.",
+      "ai_output_summary": "Produced an initial IEEE-style LaTeX report structure and PDF based on the project information.",
+      "verification": {
+        "actions": [
+          "Reviewed the generated report section by section.",
+          "Rejected generated or reconstructed technical figures and required the actual presentation images instead.",
+          "Corrected project details, author names, team contributions, and technical wording.",
+          "Requested several revisions to improve references, formatting, and remove duplicated content."
+        ],
+        "level": "manual-document-review"
+      },
+      "evaluation": {
+        "status": "heavily-revised",
+        "issues": [
+          "The first draft was too similar to a seminar paper.",
+          "Some technical images were reconstructed instead of extracted from the actual presentation.",
+          "The reference list was initially too short.",
+          "Some sections repeated the same technical points."
+        ],
+        "usefulness": "high"
+      },
+      "integration": {
+        "used_in_work": true,
+        "section": "Complete Lab Documentation",
+        "usage_type": "document-structure-and-drafting-support",
+        "direct_text_reused": false
+      },
+      "reflection": "The AI was useful for creating a starting structure, but the first version was not acceptable as our final report. We repeatedly corrected it, required real project evidence, removed reconstructed figures, and checked the content against our actual work."
+    },
+    {
+      "id": "avims-013",
+      "timestamp": "2026-07-15T14:00:00+02:00",
+      "parent_id": "avims-012",
+      "objective": "Use only real technical images from the team presentation instead of generated or reconstructed diagrams.",
+      "ai_tool": {
+        "name": "ChatGPT",
+        "model": "GPT-5"
+      },
+      "prompt": "Do not generate images or diagrams. Extract the actual requirements, use-case, activity, sequence, UPPAAL, verification, conflict matrix, live demo, and ModelSim images from our uploaded presentation and use those in the report.",
+      "ai_output_summary": "Extracted embedded presentation assets and rebuilt the report around the actual project visuals.",
+      "verification": {
+        "actions": [
+          "Checked that the report figures came from the uploaded presentation.",
+          "Removed reconstructed waveform and model images.",
+          "Reviewed the figure placement and captions."
+        ],
+        "level": "source-asset-check"
+      },
+      "evaluation": {
+        "status": "accepted-after-revision",
+        "issues": [
+          "Some figures were duplicated or unnecessary and were removed in later revisions.",
+          "The conflict matrix image was later replaced with a textual LaTeX matrix."
+        ],
+        "usefulness": "high"
+      },
+      "integration": {
+        "used_in_work": true,
+        "section": "Figures throughout the lab documentation",
+        "usage_type": "document-assembly-support",
+        "direct_text_reused": false
+      },
+      "reflection": "This revision was important because the report should show our actual project evidence. We specifically rejected fake or reconstructed technical screenshots."
+    }
+  ],
+  "exported_at": "2026-07-15T17:30:00+02:00"
+}
