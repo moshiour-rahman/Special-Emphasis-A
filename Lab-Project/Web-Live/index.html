@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AVIMS — LIVE (real FreeRTOS)</title>
+<link rel="stylesheet" href="style.css" />
+<style>
+  .live-badge { display:inline-block; padding:3px 10px; border-radius:999px; font-weight:700;
+    font-size:12px; vertical-align:middle; margin-left:8px; }
+  .live-badge.on  { background:#123d2a; color:#5bd68f; border:1px solid #2ecc71; }
+  .live-badge.off { background:#3d1414; color:#ff8f8f; border:1px solid #ff5d5d; }
+  .enginebar { color:var(--muted); margin:6px 0 0; font-size:12px; }
+  .enginebar b { color:var(--ink); }
+</style>
+</head>
+<body>
+<header>
+  <h1>AVIMS — LIVE <span id="badge" class="live-badge off">connecting…</span></h1>
+  <p class="sub">This version is driven by the <b>real FreeRTOS engine</b> (a C program using
+  FreeRTOS tasks, queues and task-notifications) running on the server. The browser only
+  <i>sends commands</i> and <i>draws the events</i> — it does <b>no</b> scheduling itself.</p>
+  <p class="enginebar" id="enginebar">engine: —</p>
+</header>
+
+<main>
+  <section class="panel intersection">
+    <h2>The intersection (drawn from live FreeRTOS events)</h2>
+    <canvas id="road" width="560" height="560" aria-label="intersection"></canvas>
+    <div class="legend">
+      <span><i class="dot queued"></i> waiting</span>
+      <span><i class="dot crossing"></i> crossing</span>
+      <span><i class="dot hi"></i> highlighted pair</span>
+    </div>
+    <p class="safety" id="safety">SAFE ✓</p>
+  </section>
+
+  <section class="panel controls">
+    <h2>Controls → sent to FreeRTOS</h2>
+
+    <div class="ctl-row">
+      <label>Channels (queuing model) — sends <code>CH</code> to the engine</label>
+      <div class="seg">
+        <button id="mm1" class="segbtn">M/M/1 (one at a time)</button>
+        <button id="mm2" class="segbtn active">M/M/2 (two if compatible)</button>
+      </div>
+    </div>
+
+    <div class="ctl-row">
+      <label>Add a car — sends <code>ADD &lt;movement&gt;</code></label>
+      <div class="addgrid">
+        <select id="approach">
+          <option value="N">From North</option>
+          <option value="E">From East</option>
+          <option value="S">From South</option>
+          <option value="W">From West</option>
+        </select>
+        <select id="intent">
+          <option value="S">Straight</option>
+          <option value="L">turn Left</option>
+          <option value="R">turn Right</option>
+        </select>
+        <button id="add">+ Add car</button>
+        <button id="addRand">+ Random</button>
+      </div>
+    </div>
+
+    <div class="ctl-row">
+      <label><input type="checkbox" id="auto" /> Auto-spawn (browser sends ADDs)</label>
+      <label class="slider">Arrival rate
+        <input type="range" id="rate" min="1" max="100" value="35" />
+      </label>
+      <label class="slider">Crossing time — sends <code>CROSS</code>
+        <input type="range" id="cross" min="500" max="5000" value="2200" step="100" />
+        <span id="crossVal">2.2 s</span>
+      </label>
+    </div>
+
+    <div class="ctl-row btns">
+      <button id="playPause">⏸ Pause engine</button>
+      <button id="reset">⟳ Reset</button>
+    </div>
+
+    <h3>FIFS queue (from engine)</h3>
+    <ol id="queue" class="queue"></ol>
+
+    <h3>Now crossing (channels)</h3>
+    <div id="channels" class="channels"></div>
+
+    <h3>Stats (authoritative, from FreeRTOS)</h3>
+    <table class="stats">
+      <tr><td>Queue length</td><td id="stQ">0</td></tr>
+      <tr><td>Occupancy (crossing)</td><td id="stOcc">0 / 2</td></tr>
+      <tr><td>Total served</td><td id="stServed">0</td></tr>
+      <tr><td>Max queue seen</td><td id="stMaxQ">0</td></tr>
+    </table>
+  </section>
+
+  <section class="panel matrix">
+    <h2>Conflict matrix</h2>
+    <p class="hint">Hover a cell to see the two paths.
+      <span class="sw red"></span>&nbsp;conflict&nbsp;&nbsp;
+      <span class="sw green"></span>&nbsp;compatible.
+      Currently-crossing movements are outlined.</p>
+    <div id="matrix" class="grid"></div>
+    <div id="cellInfo" class="cellinfo">Hover a cell…</div>
+
+    <h3>Engine event log (raw JSON from FreeRTOS)</h3>
+    <ul id="log" class="log"></ul>
+  </section>
+</main>
+
+<script src="conflict_data.js"></script>
+<script src="app-live.js"></script>
+</body>
+</html>
