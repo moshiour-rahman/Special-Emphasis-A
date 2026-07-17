@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.6//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_6.dtd'>
+<nta>
+	<declaration>// AVIMS - Autonomous Vehicle Intersection Management System
+// 4-way intersection, movement-based trajectory conflicts.
+// Single source of truth for conflicts = tools/gen_conflict.py (identical to the
+// freeRTOS conflict_table.h and the VHDL conflict_rom.vhd).
+//
+// M/M/1 vs M/M/2 is selected by CHANNELS:
+//   CHANNELS = 1  -&gt; one vehicle crosses at a time            (M/M/1)
+//   CHANNELS = 2  -&gt; up to two NON-CONFLICTING vehicles cross (M/M/2)
+
+const int NUM_VEHICLES  = 4;
+const int CHANNELS      = 2;    // set to 1 for M/M/1, 2 for M/M/2
+const int DECISION_LIMIT = 50;  // ms  (team NFR, not from the brief)
+const int CROSSING_LIMIT = 80;  // ms  max time inside the box
+const int CROSSING_MIN   = 20;  // ms  min time inside the box
+
+typedef int[0, NUM_VEHICLES - 1] vid_t;
+
+// --- movement conflict table (GENERATED, do not edit by hand) ---------------
+const int NUM_MOVEMENTS = 12;
+const int conflictTable[NUM_MOVEMENTS][NUM_MOVEMENTS] = {
+    {0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0},
+    {1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1},
+    {1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1},
+    {0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1},
+    {1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1},
+    {0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0},
+    {0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 1, 0},
+    {0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1},
+    {1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1},
+    {0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1},
+    {0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1},
+    {0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0}
+};
+bool conflictMoves(int a, int b) {
+    return conflictTable[a][b] == 1;
+}
+
+// movement id = approach*3 + intent ; approaches N,E,S,W ; intents R,S,L.
+// v0=NS(1), v1=SS(7) compatible pair ; v2=ES(4), v3=WS(10) compatible pair.
+// NS conflicts ES, so {v0,v1} or {v2,v3} may pair under M/M/2, but not across.
+const int move_of[NUM_VEHICLES] = { 1, 7, 4, 10 };
+
+chan grant[NUM_VEHICLES];
+chan sync_backup, sync_ok;
+
+clock decisionClock;
+
+bool requested[NUM_VEHICLES];
+bool permission[NUM_VEHICLES];   // granted, not yet exited (= "committed")
+bool inside[NUM_VEHICLES];       // physically crossing
+int[0, NUM_VEHICLES] insideCount = 0;
+int[0, NUM_VEHICLES] occ = 0;    // number of committed (granted) vehicles this round
+bool serverSynced = true;
+
+// NOTE on FIFS: the timed-automata model abstracts arrival order - it may serve ANY
+// pairwise-compatible waiting vehicle (a sound over-approximation for the safety and
+// timing properties below). Strict First-In-First-Served ordering is realised in the
+// freeRTOS SchedulerTask via a real bounded FIFS queue (rtos/), which cannot be encoded
+// here with an unbounded arrival counter without making the state space infinite.
+
+bool waiting(vid_t v) {
+    return requested[v] &amp;&amp; !permission[v] &amp;&amp; !inside[v];
+}
+
+bool existsWaiting() {
+    return waiting(0) || waiting(1) || waiting(2) || waiting(3);
+}
+
+// compatible with every already-committed (granted) vehicle this round
+bool compatibleCommitted(vid_t v) {
+    for (i : vid_t)
+        if (i != v &amp;&amp; permission[i] &amp;&amp; conflictMoves(move_of[v], move_of[i]))
+            return false;
+    return true;
+}
+
+// grant rule: a waiting vehicle, a free channel, compatible with the committed ones
+bool grantable(vid_t v) {
+    return waiting(v) &amp;&amp; occ &lt; CHANNELS &amp;&amp; compatibleCommitted(v);
+}
+
+bool anyGrantable() {
+    return grantable(0) || grantable(1) || grantable(2) || grantable(3);
+}
+</declaration>
+	<template>
+		<name>Vehicle</name>
+		<parameter>const vid_t id</parameter>
+		<declaration>clock travel;</declaration>
+		<location id="id0" x="-52" y="8">
+			<name x="-62" y="-26">Idle</name>
+		</location>
+		<location id="id1" x="416" y="8">
+			<name x="406" y="-26">Waiting</name>
+		</location>
+		<location id="id2" x="416" y="195">
+			<name x="433" y="170">Crossing</name>
+			<label kind="invariant" x="331" y="204">travel &lt;= CROSSING_LIMIT</label>
+		</location>
+		<location id="id3" x="-51" y="195">
+			<name x="-61" y="161">Done</name>
+			<committed/>
+		</location>
+		<init ref="id0"/>
+		<transition id="id4">
+			<source ref="id0"/>
+			<target ref="id1"/>
+			<label kind="guard" x="119" y="42">!requested[id]</label>
+			<label kind="assignment" x="102" y="17">requested[id] = true</label>
+		</transition>
+		<transition id="id5">
+			<source ref="id1"/>
+			<target ref="id2"/>
+			<label kind="synchronisation" x="425" y="59">grant[id]?</label>
+			<label kind="assignment" x="425" y="85">inside[id] = true, insideCount++, travel = 0</label>
+		</transition>
+		<transition id="id6">
+			<source ref="id2"/>
+			<target ref="id3"/>
+			<label kind="guard" x="93" y="161">travel &gt;= CROSSING_MIN</label>
+			<label kind="assignment" x="-25" y="229">inside[id] = false, insideCount--, permission[id] = false, occ--,
+requested[id] = false</label>
+		</transition>
+		<transition id="id7">
+			<source ref="id3"/>
+			<target ref="id0"/>
+			<nail x="-52" y="93"/>
+		</transition>
+	</template>
+	<template>
+		<name>PrimaryServer</name>
+		<location id="id8" x="-671" y="0">
+			<name x="-681" y="-34">Idle</name>
+		</location>
+		<location id="id9" x="-76" y="0">
+			<name x="-116" y="-34">Deciding</name>
+			<label kind="invariant" x="-204" y="-51">decisionClock &lt;= DECISION_LIMIT</label>
+		</location>
+		<location id="id10" x="-76" y="246">
+			<name x="-136" y="263">WaitBackupAck</name>
+		</location>
+		<location id="id11" x="-671" y="246">
+			<name x="-748" y="229">Granting</name>
+			<committed/>
+		</location>
+		<init ref="id8"/>
+		<transition id="id12">
+			<source ref="id8"/>
+			<target ref="id9"/>
+			<label kind="guard" x="-544" y="-25">occ == 0 &amp;&amp; existsWaiting()</label>
+			<label kind="assignment" x="-544" y="8">decisionClock = 0, serverSynced = false</label>
+		</transition>
+		<transition id="id13">
+			<source ref="id9"/>
+			<target ref="id10"/>
+			<label kind="synchronisation" x="-178" y="102">sync_backup!</label>
+		</transition>
+		<transition id="id14">
+			<source ref="id10"/>
+			<target ref="id11"/>
+			<label kind="synchronisation" x="-459" y="221">sync_ok?</label>
+			<label kind="assignment" x="-510" y="246">serverSynced = true</label>
+		</transition>
+		<transition id="id15">
+			<source ref="id11"/>
+			<target ref="id11"/>
+			<label kind="select" x="-705" y="331">v : vid_t</label>
+			<label kind="guard" x="-714" y="348">grantable(v)</label>
+			<label kind="synchronisation" x="-705" y="289">grant[v]!</label>
+			<label kind="assignment" x="-773" y="314">permission[v] = true, occ++</label>
+			<nail x="-569" y="314"/>
+			<nail x="-765" y="314"/>
+		</transition>
+		<transition id="id16">
+			<source ref="id11"/>
+			<target ref="id8"/>
+			<label kind="guard" x="-671" y="102">!anyGrantable()</label>
+			<nail x="-671" y="136"/>
+		</transition>
+	</template>
+	<template>
+		<name>BackupServer</name>
+		<location id="id17" x="-140" y="0">
+			<name x="-150" y="-34">Ready</name>
+		</location>
+		<location id="id18" x="140" y="0">
+			<name x="120" y="-34">Stored</name>
+			<committed/>
+		</location>
+		<init ref="id17"/>
+		<transition id="id19">
+			<source ref="id17"/>
+			<target ref="id18"/>
+			<label kind="synchronisation" x="-40" y="-34">sync_backup?</label>
+		</transition>
+		<transition id="id20">
+			<source ref="id18"/>
+			<target ref="id17"/>
+			<label kind="synchronisation" x="-40" y="34">sync_ok!</label>
+			<label kind="assignment" x="-40" y="59">serverSynced = true</label>
+			<nail x="140" y="90"/>
+			<nail x="-140" y="90"/>
+		</transition>
+	</template>
+	<system>Server = PrimaryServer();
+Backup = BackupServer();
+Car0 = Vehicle(0);
+Car1 = Vehicle(1);
+Car2 = Vehicle(2);
+Car3 = Vehicle(3);
+
+system Server, Backup, Car0, Car1, Car2, Car3;
+</system>
+	<queries>
+		<query>
+			<formula>A[] not deadlock</formula>
+			<comment>Deadlock freedom for the whole AVIMS model.</comment>
+		</query>
+		<query>
+			<formula>A[] forall (i : vid_t) forall (j : vid_t) (i != j &amp;&amp; inside[i] &amp;&amp; inside[j]) imply !conflictMoves(move_of[i], move_of[j])</formula>
+			<comment>Safety: no two vehicles with conflicting movements are inside the intersection together.</comment>
+		</query>
+		<query>
+			<formula>A[] forall (i : vid_t) inside[i] imply permission[i]</formula>
+			<comment>No vehicle is inside without a granted permission (C-02).</comment>
+		</query>
+		<query>
+			<formula>A[] (Server.Deciding imply decisionClock &lt;= DECISION_LIMIT)</formula>
+			<comment>The scheduling decision respects the 50 ms bound (NFR-01).</comment>
+		</query>
+		<query>
+			<formula>A[] forall (i : vid_t) permission[i] imply serverSynced</formula>
+			<comment>Backup is synchronized before any permission is active (FR-08, NFR-03).</comment>
+		</query>
+		<query>
+			<formula>A[] (occ &lt;= CHANNELS &amp;&amp; insideCount &lt;= CHANNELS)</formula>
+			<comment>Intersection occupancy never exceeds the number of service channels (M/M/CHANNELS).</comment>
+		</query>
+		<query>
+			<formula>E&lt;&gt; (inside[0] &amp;&amp; inside[1])</formula>
+			<comment>Liveness/M/M2 witness: two compatible vehicles (NS, SS) can cross simultaneously when CHANNELS=2.</comment>
+		</query>
+	</queries>
+</nta>
